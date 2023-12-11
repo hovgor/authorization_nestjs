@@ -5,4 +5,3 @@ To run the project, follow these steps:
 3. open browser http://localhost:1995/swagger#/
 
 there is an example env file
-

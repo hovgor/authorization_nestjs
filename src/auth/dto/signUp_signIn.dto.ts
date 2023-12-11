@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MaxLength, MinLength } from 'class-validator';
-
-export class RegisterDto {
+//es filei anuny poxi Astcu siro auth.dto.ts
+export class SignUpDto {
   @ApiProperty()
   @IsString()
   @MinLength(4)

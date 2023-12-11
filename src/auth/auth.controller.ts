@@ -1,19 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  HttpStatus,
-  Logger,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { Request, Response } from 'express';
-import { LoginDto, RegisterDto } from './dto/signUp_signIn.dto';
-import { AuthGuard } from '@nestjs/passport';
+import { LoginDto } from './dto/signUp_signIn.dto';
+import { JwtGuard } from './guards/jwt.guard';
+import { CurrentUser } from 'src/common/decorators/request.decorator';
+import { JwtUser } from 'src/common/interfaces/jwt-user.interface';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -22,37 +13,30 @@ export class AuthController {
 
   @ApiResponse({
     status: HttpStatus.ACCEPTED,
-    description: 'user sign in, add username and password.',
+    description: 'Authenticate',
   })
-  @Post('login')
-  async login(@Req() req, @Body() body: LoginDto, @Res() res: Response) {
-    const token = this.authService.login(body);
-    res.status(HttpStatus.ACCEPTED).json(token);
+  @Post('/')
+  async authorize(@Body() body: LoginDto) {
+    return this.authService.login(body);
   }
 
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'user sign up, add username and password.',
+    description: 'Sign up',
   })
-  @Post('signUp')
-  async signUp(@Res() res: Response, @Body() body: RegisterDto) {
-    try {
-      const result = await this.authService.signUp(body);
-      res.status(HttpStatus.CREATED).json(result);
-    } catch (error) {
-      Logger.error('signUp function error');
-      throw error;
-    }
+  @Post('sign-up')
+  async signUp(@Body() dto: LoginDto) {
+    return this.authService.signUp(dto);
   }
 
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'when logout, token is deleted.',
+    description: 'Log out',
   })
   @ApiBearerAuth()
-  @UseGuards(AuthGuard('jwt'))
-  @Delete('logout')
-  async logout(@Req() req: Request) {
-    await this.authService.logout(req.user);
+  @UseGuards(JwtGuard)
+  @Post('logout')
+  async logout(@CurrentUser() user: JwtUser): Promise<void> {
+    return this.authService.logout(user.userId);
   }
 }
